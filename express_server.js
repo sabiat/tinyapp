@@ -38,6 +38,8 @@ app.get("/urls/:shortURL", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log  the POST request body to the console
+  let shortURL = generateRandomString();
+  urlDatabase[shortURL] = req.body.longURL;
   res.send("Ok");        // Respond with 'Ok'
 })
 
@@ -52,7 +54,7 @@ app.listen(PORT, () => {
 
 function generateRandomString() {
   let result = '';
-  let letters = 'abcdefghijklmnopqrstuvwxyz';
+  let letters = 'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
   for (let i = 0; i < 6; i++) {
     result += letters.charAt(Math.floor(Math.random() * letters.length));
