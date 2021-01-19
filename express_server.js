@@ -38,7 +38,9 @@ app.post("/urls", (req, res) => {
 })
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-
+  const urlToDelete = req.params.shortURL;
+  delete urlDatabase[urlToDelete];
+  res.redirect("/urls");
 })
 
 app.get("/u/:shortURL", (req, res) => {
