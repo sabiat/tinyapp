@@ -33,6 +33,11 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.post("/login", (req, res) => {
+  res.cookie('username', req.body.username);
+  res.redirect('/urls');
+})
+
 app.post("/urls/:shortURL", (req, res) => {
   urlDatabase[req.params.shortURL] = req.body.longURL;
   res.redirect("/urls");
