@@ -4,15 +4,16 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+// body-parser library will convert request body from buffer to a string
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
+
+const cookieParser = require('cookie-parser');
 
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
-
-// body-parser library will convert request body from buffer to a string
-const bodyParser = require("body-parser");
-app.use(bodyParser.urlencoded({extended: true}));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
