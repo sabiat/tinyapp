@@ -11,8 +11,8 @@ const urlDatabase = {
 };
 
 // body-parser library will convert request body from buffer to a string
-const bodyParser = require("body-parser"); 
-app.use(bodyParser.urlencoded({extended: true})); 
+const bodyParser = require("body-parser");
+app.use(bodyParser.urlencoded({extended: true}));
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -31,25 +31,30 @@ app.get("/urls/new", (req, res) => {
   res.render("urls_new");
 });
 
+app.post("/urls/:shortURL", (req, res) => {
+  urlDatabase[req.params.shortURL] = req.body.longURL;
+  res.redirect("/urls");
+});
+
 app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   urlDatabase[newShortURL] = req.body.longURL;
   res.redirect(`/urls/${newShortURL}`);
-})
+});
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const urlToDelete = req.params.shortURL;
   delete urlDatabase[urlToDelete];
   res.redirect("/urls");
-})
+});
 
 app.get("/u/:shortURL", (req, res) => {
   const longURL = urlDatabase[req.params.shortURL];
   res.redirect(longURL);
-})
+});
 
 app.get("/urls/:shortURL", (req, res) => {
-  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]}
+  const templateVars = { shortURL: req.params.shortURL, longURL: urlDatabase[req.params.shortURL]};
   res.render("urls_show", templateVars);
 });
 
@@ -62,7 +67,7 @@ app.listen(PORT, () => {
 });
 
 
-function generateRandomString() {
+const generateRandomString = function() {
   let result = '';
   let letters = 'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
@@ -70,4 +75,4 @@ function generateRandomString() {
     result += letters.charAt(Math.floor(Math.random() * letters.length));
   }
   return result;
-}
+};
