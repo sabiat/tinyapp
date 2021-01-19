@@ -32,9 +32,13 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  let shortURL = generateRandomString();
-  urlDatabase[shortURL] = req.body['longURL'];
-  res.redirect(`/urls/${shortURL}`);
+  let newShortURL = generateRandomString();
+  urlDatabase[newShortURL] = req.body.longURL;
+  res.redirect(`/urls/${newShortURL}`);
+})
+
+app.post("/urls/:shortURL/delete", (req, res) => {
+
 })
 
 app.get("/u/:shortURL", (req, res) => {
