@@ -50,3 +50,12 @@ app.listen(PORT, () => {
 });
 
 
+function generateRandomString() {
+  let result = '';
+  let letters = 'abcdefghijklmnopqrstuvwxyz';
+
+  for (let i = 0; i < 6; i++) {
+    result += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return result;
+}
