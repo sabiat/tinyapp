@@ -50,7 +50,11 @@ app.get("/urls/new", (req, res) => {
   const user = req.cookies.user_id;
   const userObject = users[user];
   const templateVars = { userObject };
-  res.render("urls_new", templateVars);
+  if (!userObject) {
+    res.redirect("/login");
+  } else {
+    res.render("urls_new", templateVars);
+  }
 });
 
 app.post("/logout", (req, res) => {
