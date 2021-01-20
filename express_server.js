@@ -49,6 +49,26 @@ const emailLookup = function(userDatabase, email) {
   }
 };
 
+const passwordMatch = function(userDatabase, email, password) {
+  for (const user in userDatabase) {
+    if (userDatabase[user]['email'] === email && userDatabase[user]['password'] === password) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+
+// find user id from given email to set cookie
+const fetchUserId = function(userDatabase, email) {
+  for (user in userDatabase) {
+    if (userDatabase[user]['email'] === email) {
+      return user
+    }
+  }
+};
+
+
 app.get("/", (req, res) => {
   res.send("Hello!");
 });
@@ -80,8 +100,19 @@ app.post("/logout", (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  res.cookie('user_id', req.body.username);
-  res.redirect('/urls');
+  const emailInput = req.body.email;
+  const passwordInput = req.body.password;
+  if (emailLookup(users, emailInput)) {
+    if (passwordMatch(users, emailInput, passwordInput)) {
+      const userCookie = fetchUserId(users, emailInput);
+      res.cookie('user_id', userCookie);
+      res.redirect('/urls');
+    } else {
+      res.status(403).send('Incorrect Password');
+    }
+  } else {
+    res.status(403).send("Please register for an account");
+  }
 });
 
 app.get("/login", (req, res) => {
@@ -89,7 +120,7 @@ app.get("/login", (req, res) => {
   const userObject = users[user];
   const templateVars = { userObject }
   res.render("login", templateVars);
-})
+});
 
 app.post("/register", (req, res) => {
   const emailInput = req.body.email;
