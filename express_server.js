@@ -74,6 +74,10 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+  if (req.body.email === "" || req.body.password === "") {
+    res.status(400)
+    res.send("Please enter a valid email/password");
+  }
   const newUserId = generateRandomString();
   users[`${newUserId}`] = {
     id: newUserId,
