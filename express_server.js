@@ -36,7 +36,18 @@ const users = {
     email: "user2@example.com",
     password: "another-random-password"
   }
-}
+};
+
+// function to look up if email already exists in database
+const emailLookup = function(userDatabase, email) {
+  for (const user in userDatabase) {
+    if (userDatabase[user]['email'] === email) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -74,18 +85,21 @@ app.post("/login", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
-  if (req.body.email === "" || req.body.password === "") {
-    res.status(400)
-    res.send("Please enter a valid email/password");
+  const emailInput = req.body.email;
+  if (emailInput === "" || req.body.password === "") {
+    return res.status(400).send('Pleaser enter a valid email/password');
+  } else if (emailLookup(users, emailInput)) { 
+    return res.status(400).send('Email already registered');
+  } else {
+    const newUserId = generateRandomString();
+    users[`${newUserId}`] = {
+      id: newUserId,
+      email: req.body.email,
+      password: req.body.password
+    }
+    res.cookie('user_id', newUserId);
+    res.redirect("/urls");
   }
-  const newUserId = generateRandomString();
-  users[`${newUserId}`] = {
-    id: newUserId,
-    email: req.body.email,
-    password: req.body.password
-  }
-  res.cookie('user_id', newUserId);
-  res.redirect("/urls");
 });
 
 app.post("/urls/:shortURL", (req, res) => {
