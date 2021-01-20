@@ -84,6 +84,13 @@ app.post("/login", (req, res) => {
   res.redirect('/urls');
 });
 
+app.get("/login", (req, res) => {
+  const user = req.cookies.user_id;
+  const userObject = users[user];
+  const templateVars = { userObject }
+  res.render("login", templateVars);
+})
+
 app.post("/register", (req, res) => {
   const emailInput = req.body.email;
   if (emailInput === "" || req.body.password === "") {
