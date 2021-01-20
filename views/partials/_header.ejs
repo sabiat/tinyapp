@@ -14,13 +14,15 @@
       <% if(userObject){ %>
         <form method="POST" action="/logout">
           <label>Logged in as <%=userObject.email%></label>
-          <button>Logout</button>
+          <button class="btn btn-outline-dark">Logout</button>
         </form>
       <% } else{ %>
-        <form method="POST" action="/login">
-          <input type="text" name="username" placeholder="Username">
-          <button type="submit">Login</button>
-        </form>
+        <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
+          <div class="navbar-nav">
+            <a class ="nav-item nav-link" href= "/register">Register</a>
+            <a class = "nav-item nav-link" href = "/login">Login</a>
+          </div>
+        </div>
       <% } %>
     </div>  
   </nav>
