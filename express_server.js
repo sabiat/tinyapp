@@ -11,10 +11,32 @@ app.use(bodyParser.urlencoded({extended: true}));
 const cookieParser = require('cookie-parser');
 app.use(cookieParser());
 
+const generateRandomString = function() {
+  let result = '';
+  let letters = 'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for (let i = 0; i < 6; i++) {
+    result += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  return result;
+};
+
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
 };
+
+const users = {
+  "userRandomID": {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "random-password"
+  },
+  "user2RandomID": {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "another-random-password"
+  }
+}
 
 app.get("/", (req, res) => {
   res.send("Hello!");
@@ -47,6 +69,17 @@ app.post("/logout", (req, res) => {
 app.post("/login", (req, res) => {
   res.cookie('username', req.body.username);
   res.redirect('/urls');
+});
+
+app.post("/register", (req, res) => {
+  const newUserId = generateRandomString();
+  users[`${newUserId}`] = {
+    id: newUserId,
+    email: req.body.email,
+    password: req.body.password
+  }
+  res.cookie('user_id', newUserId);
+  res.redirect("/urls");
 });
 
 app.post("/urls/:shortURL", (req, res) => {
@@ -94,12 +127,3 @@ app.listen(PORT, () => {
 });
 
 
-const generateRandomString = function() {
-  let result = '';
-  let letters = 'abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-
-  for (let i = 0; i < 6; i++) {
-    result += letters.charAt(Math.floor(Math.random() * letters.length));
-  }
-  return result;
-};
