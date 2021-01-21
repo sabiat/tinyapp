@@ -53,7 +53,7 @@ app.get("/urls", (req, res) => {
   if (userObject) {
     res.render('urls_index', templateVars);
   } else {
-    res.status(401).render("403", templateVars);
+    res.status(401).render("401", templateVars);
   }
 });
 
@@ -126,7 +126,7 @@ app.post("/urls/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL
   const templateVars = { userObject }
   if (!user) {
-    res.status(401).render("403", templateVars);
+    res.status(401).render("401", templateVars);
   } else if (urlToShow[shortURL]) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
@@ -147,7 +147,7 @@ app.post("/urls", (req, res) => {
     };
     res.redirect(`/urls/${newShortURL}`);
   } else {
-    res.status(401).render("403", templateVars);
+    res.status(401).render("401", templateVars);
   }
 });
 
@@ -163,7 +163,7 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   } else if (userObject) {
     res.status(403).send('Access denied');
   } else {
-    res.status(401).render("403", templateVars);
+    res.status(401).render("401", templateVars);
   }
 });
 
@@ -203,7 +203,7 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   const urlToShow = urlsForUser(urlDatabase, user); //returns list of URLs current user can see
   if (!userObject) {
-    return res.status(401).render("403", templateVars);
+    return res.status(401).render("401", templateVars);
   }
   if (urlToShow[shortURL]) { // requested id is part of list users can see
     res.render("urls_show", templateVars);
