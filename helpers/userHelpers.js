@@ -26,4 +26,16 @@ const passwordMatch = function(userDatabase, email, password) {
   return false;
 };
 
-module.exports = { generateRandomString, fetchUserId, passwordMatch};
+const urlsForUser = function(urlDatabase, id) {
+  const urlsToDisplay = {
+  };
+  for (const url in urlDatabase) {
+    const storedId = urlDatabase[url].userID;
+    if (storedId === id) {
+      urlsToDisplay[url] = urlDatabase[url];
+    }
+  }
+  return urlsToDisplay;
+};
+
+module.exports = { generateRandomString, fetchUserId, passwordMatch, urlsForUser};
