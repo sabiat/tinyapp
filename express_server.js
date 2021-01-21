@@ -106,8 +106,15 @@ app.post("/register", (req, res) => {
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  urlDatabase[req.params.shortURL].longURL = req.body.longURL;
-  res.redirect("/urls");
+  const user = req.cookies.user_id;
+  const urlToShow = urlsForUser(urlDatabase, user);
+  const shortURL = req.params.shortURL
+  if (urlToShow[shortURL]) {
+    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    res.redirect("/urls");
+  } else {
+    res.status(403).send("Access Denied");
+  }
 });
 
 app.post("/urls", (req, res) => {
@@ -141,6 +148,9 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = req.cookies.user_id;
   const userObject = users[user];
   const shortURL = req.params.shortURL;
+  if (!urlDatabase[shortURL]) {
+    return res.sendStatus(404);
+  }
   const longURL = urlDatabase[shortURL].longURL
   const templateVars = {
     userObject,
@@ -148,7 +158,7 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL
   };
   const urlToShow = urlsForUser(urlDatabase, user);
-  if (urlToShow[shortURL] || !userObject) { // render page with url if user has access or if not logged in render message
+  if (urlToShow[shortURL] || !userObject) { // render full page if user request or if not logged in render message to login
     res.render("urls_show", templateVars);
   } else {
     res.status(403).send('Access denied');
