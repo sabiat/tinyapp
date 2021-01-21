@@ -146,7 +146,7 @@ app.post("/urls", (req, res) => {
     };
     res.redirect(`/urls/${newShortURL}`);
   } else {
-    res.status(403).render("403", templateVars);
+    res.status(401).render("403", templateVars);
   }
 });
 
