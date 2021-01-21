@@ -78,22 +78,25 @@ app.post("/login", (req, res) => {
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
   const user = fetchUserId(users, emailInput);
+  const templateVars = { userObject: null, error: "Error"} 
   if (user) {
     if (passwordMatch(users, emailInput, passwordInput)) {
       req.session.user_id = user.id;
       res.redirect('/urls');
     } else {
-      res.redirect(401, '/login');
+      templateVars.error = "Incorrect email/password";
+      res.status(401).render("login", templateVars);
     }
   } else {
-    res.redirect(401, '/register');
+    templateVars.error = "No account registered with that email";
+    res.status(401).render("login", templateVars);
   }
 });
 
 app.get("/login", (req, res) => {
   const user = req.session['user_id'];
   const userObject = users[user];
-  const templateVars = { userObject };
+  const templateVars = { userObject, error: null };
   if (user) {
     res.redirect("/urls");
   } else {
@@ -210,9 +213,8 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   const urlToShow = urlsForUser(urlDatabase, user); //returns list of URLs current user can see
   if (!userObject) {
-    return res.status(401).render("401", templateVars);
-  }
-  if (urlToShow[shortURL]) { // requested id is part of list users can see
+    res.status(401).render("401", templateVars);
+  } else if (urlToShow[shortURL]) { // requested id is part of url list users can see
     res.render("urls_show", templateVars);
   } else {
     res.status(403).send('Access denied');
@@ -220,7 +222,7 @@ app.get("/urls/:shortURL", (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Example app listening on port ${PORT}!`);
+  console.log(`Tiny app listening on port ${PORT}!`);
 });
 
 
