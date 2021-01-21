@@ -9,7 +9,7 @@ const generateRandomString = function() {
   return result;
 };
 
-// function to look up if email already exists in database and fetch user
+// function to look up if email already exists in database and return user object
 const fetchUserId = function(userDatabase, email) {
   for (const user in userDatabase) {
     if (userDatabase[user]['email'] === email) {
