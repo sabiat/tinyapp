@@ -35,11 +35,12 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  const isLoggedIn = req.session['user_id'] ? res.redirect("/urls") : res.redirect("/login");
-});
-
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
+  const user = req.session['user_id'];
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.redirect("/login");
+  }
 });
 
 app.get("/urls", (req, res) => {
@@ -94,19 +95,36 @@ app.get("/login", (req, res) => {
   const userObject = users[user];
   const templateVars = { userObject };
   if (user) {
-    res.redirect("/urls")
+    res.redirect("/urls");
   } else {
     res.render("login", templateVars);
+  }
+});
+
+app.get("/register", (req, res) => {
+  const user = req.session['user_id'];
+  const userObject = users[user];
+  const templateVars = { userObject, error: null };
+  if (user) {
+    res.redirect("/urls");
+  } else {
+    res.render("registration_page", templateVars);
   }
 });
 
 app.post("/register", (req, res) => {
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
+  const templateVars = {
+    error: "Error",
+    userObject: null
+  };
   if (emailInput === "" || passwordInput === "") {
-    res.status(400).send('Please enter a valid email/password');
+    templateVars.error = "Please provide valid email/password";
+    res.status(400).render("registration_page", templateVars);
   } else if (fetchUserId(users, emailInput)) {
-    res.status(400).send('Email already registered');
+    templateVars.error = "Email already registered, please login";
+    res.status(400).render("registration_page", templateVars);
   } else {
     const newUserId = generateRandomString();
     users[`${newUserId}`] = {
@@ -114,21 +132,21 @@ app.post("/register", (req, res) => {
       email: emailInput,
       password: bcrypt.hashSync(passwordInput, 10)
     };
-    req.session.user_id = newUserId; 
+    req.session.user_id = newUserId;
     res.redirect("/urls");
   }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
   const user = req.session['user_id'];
-  const userObject = users[user]
+  const userObject = users[user];
   const urlToShow = urlsForUser(urlDatabase, user);
-  const shortURL = req.params.shortURL
-  const templateVars = { userObject }
+  const shortURL = req.params.shortURL;
+  const templateVars = { userObject };
   if (!user) {
     res.status(401).render("401", templateVars);
   } else if (urlToShow[shortURL]) {
-    urlDatabase[req.params.shortURL].longURL = req.body.longURL;
+    urlDatabase[shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
   } else {
     res.status(403).send("Access denied");
@@ -155,9 +173,9 @@ app.post("/urls/:shortURL/delete", (req, res) => {
   const user = req.session['user_id'];
   const userObject = users[user];
   const templateVars = { userObject };
-  const urlAccess = urlsForUser(urlDatabase, user);
-  if (userObject && urlAccess) {
-    const urlToDelete = req.params.shortURL;
+  const urlAccess = urlsForUser(urlDatabase, user); // list of urls user has access to
+  const urlToDelete = req.params.shortURL;
+  if (userObject && urlAccess[urlToDelete]) {
     delete urlDatabase[urlToDelete];
     res.redirect("/urls");
   } else if (userObject) {
@@ -177,17 +195,6 @@ app.get("/u/:shortURL", (req, res) => {
   }
 });
 
-app.get("/register", (req, res) => {
-  const user = req.session['user_id'];
-  const userObject = users[user];
-  const templateVars = { userObject };
-  if (user) {
-    res.redirect("/urls");
-  } else {
-    res.render("registration_page", templateVars);
-  }
-});
-
 app.get("/urls/:shortURL", (req, res) => {
   const user = req.session['user_id'];
   const userObject = users[user];
@@ -195,7 +202,7 @@ app.get("/urls/:shortURL", (req, res) => {
   if (!urlDatabase[shortURL]) { //URL for given ID does not exist
     return res.sendStatus(404);
   }
-  const longURL = urlDatabase[shortURL].longURL
+  const longURL = urlDatabase[shortURL].longURL;
   const templateVars = {
     userObject,
     shortURL,
@@ -209,7 +216,7 @@ app.get("/urls/:shortURL", (req, res) => {
     res.render("urls_show", templateVars);
   } else {
     res.status(403).send('Access denied');
-  } 
+  }
 });
 
 app.listen(PORT, () => {
