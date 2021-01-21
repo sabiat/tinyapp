@@ -127,9 +127,18 @@ app.post("/urls", (req, res) => {
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const urlToDelete = req.params.shortURL;
-  delete urlDatabase[urlToDelete];
-  res.redirect("/urls");
+  const user = req.cookies.user_id;
+  const userObject = users[user];
+  const urlAccess = urlsForUser(urlDatabase, user);
+  if (userObject && urlAccess) {
+    const urlToDelete = req.params.shortURL;
+    delete urlDatabase[urlToDelete];
+    res.redirect("/urls");
+  } else if (userObject) {
+    return res.status(403).send('Access denied');
+  } else {
+    res.status(403).send('Please login to perform this action');
+  }
 });
 
 app.get("/u/:shortURL", (req, res) => {
