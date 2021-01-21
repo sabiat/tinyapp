@@ -68,10 +68,10 @@ app.post("/logout", (req, res) => {
 app.post("/login", (req, res) => {
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
-  if (fetchUserId(users, emailInput)) {
+  const user = fetchUserId(users, emailInput);
+  if (user) {
     if (passwordMatch(users, emailInput, passwordInput)) {
-      const userCookie = fetchUserId(users, emailInput);
-      res.cookie('user_id', userCookie);
+      res.cookie('user_id', user.id);
       res.redirect('/urls');
     } else {
       res.status(403).send('Incorrect Password');
@@ -100,9 +100,8 @@ app.post("/register", (req, res) => {
     users[`${newUserId}`] = {
       id: newUserId,
       email: emailInput,
-      hashedPassword: bcrypt.hashSync(passwordInput, 10)
+      password: bcrypt.hashSync(passwordInput, 10)
     };
-    // console.log(users);
     res.cookie('user_id', newUserId);
     res.redirect("/urls");
   }
