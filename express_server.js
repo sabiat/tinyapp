@@ -140,12 +140,19 @@ app.get("/register", (req, res) => {
 app.get("/urls/:shortURL", (req, res) => {
   const user = req.cookies.user_id;
   const userObject = users[user];
+  const shortURL = req.params.shortURL;
+  const longURL = urlDatabase[shortURL].longURL
   const templateVars = {
     userObject,
-    shortURL: req.params.shortURL,
-    longURL: urlDatabase[req.params.shortURL].longURL
+    shortURL,
+    longURL
   };
-  res.render("urls_show", templateVars);
+  const urlToShow = urlsForUser(urlDatabase, user);
+  if (urlToShow[shortURL] || !userObject) { // render page with url if user has access or if not logged in render message
+    res.render("urls_show", templateVars);
+  } else {
+    res.status(403).send('Access denied');
+  } 
 });
 
 app.get("/hello", (req, res) => {
