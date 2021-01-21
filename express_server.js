@@ -29,7 +29,7 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const isLoggedIn = req.cookies.user_id ? res.redirect("/urls") : res.redirect("/login");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -142,8 +142,13 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 });
 
 app.get("/u/:shortURL", (req, res) => {
-  const longURL = urlDatabase[req.params.shortURL].longURL;
-  res.redirect(longURL);
+  const shortURL = req.params.shortURL;
+  if (urlDatabase[shortURL]) {
+    const longURL = urlDatabase[shortURL].longURL;
+    res.redirect(longURL);
+  } else {
+    res.sendStatus(404);
+  }
 });
 
 app.get("/register", (req, res) => {
@@ -157,7 +162,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = req.cookies.user_id;
   const userObject = users[user];
   const shortURL = req.params.shortURL;
-  if (!urlDatabase[shortURL]) {
+  if (!urlDatabase[shortURL]) { //URL for given ID does not exist
     return res.sendStatus(404);
   }
   const longURL = urlDatabase[shortURL].longURL
@@ -166,16 +171,12 @@ app.get("/urls/:shortURL", (req, res) => {
     shortURL,
     longURL
   };
-  const urlToShow = urlsForUser(urlDatabase, user);
+  const urlToShow = urlsForUser(urlDatabase, user); //returns list of URLs only current user can access
   if (urlToShow[shortURL] || !userObject) { // render full page if user request or if not logged in render message to login
     res.render("urls_show", templateVars);
   } else {
     res.status(403).send('Access denied');
   } 
-});
-
-app.get("/hello", (req, res) => {
-  res.send("<html><body>Hello <b>World</b></body></html>\n");
 });
 
 app.listen(PORT, () => {
