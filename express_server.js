@@ -1,6 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
+const bcrypt = require('bcrypt');
 const { generateRandomString, fetchUserId, passwordMatch, urlsForUser } = require('./helpers/userHelpers');
 const app = express();
 const PORT = 8080; // default port 8080
@@ -89,17 +90,19 @@ app.get("/login", (req, res) => {
 
 app.post("/register", (req, res) => {
   const emailInput = req.body.email;
-  if (emailInput === "" || req.body.password === "") {
-    return res.status(400).send('Pleaser enter a valid email/password');
+  const passwordInput = req.body.password;
+  if (emailInput === "" || passwordInput === "") {
+    return res.status(400).send('Please enter a valid email/password');
   } else if (fetchUserId(users, emailInput)) {
     return res.status(400).send('Email already registered');
   } else {
     const newUserId = generateRandomString();
     users[`${newUserId}`] = {
       id: newUserId,
-      email: req.body.email,
-      password: req.body.password
+      email: emailInput,
+      hashedPassword: bcrypt.hashSync(passwordInput, 10)
     };
+    // console.log(users);
     res.cookie('user_id', newUserId);
     res.redirect("/urls");
   }
