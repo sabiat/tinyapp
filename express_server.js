@@ -1,6 +1,6 @@
 const express = require("express");
 const bodyParser = require("body-parser");
-const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require('bcrypt');
 const { generateRandomString, fetchUserId, passwordMatch, urlsForUser } = require('./helpers/userHelpers');
 const app = express();
@@ -9,8 +9,12 @@ const PORT = 8080; // default port 8080
 app.set("view engine", "ejs");
 
 app.use(bodyParser.urlencoded({extended: true}));
-app.use(cookieParser());
-
+app.use(
+  cookieSession({
+    name: 'session',
+    keys: ['key1', 'key2'],
+  })
+);
 const urlDatabase = {
   "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
   "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID"}
@@ -30,7 +34,7 @@ const users = {
 };
 
 app.get("/", (req, res) => {
-  const isLoggedIn = req.cookies.user_id ? res.redirect("/urls") : res.redirect("/login");
+  const isLoggedIn = req.session['user_id'] ? res.redirect("/urls") : res.redirect("/login");
 });
 
 app.get("/urls.json", (req, res) => {
@@ -38,7 +42,8 @@ app.get("/urls.json", (req, res) => {
 });
 
 app.get("/urls", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
+  // console.log(user);
   const userObject = users[user];
   const urls = urlsForUser(urlDatabase, user); // filtered list of URLs to display
   const templateVars = {
@@ -53,7 +58,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.get("/urls/new", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
   const userObject = users[user];
   const templateVars = { userObject };
   if (!userObject) {
@@ -64,7 +69,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/logout", (req, res) => {
-  res.clearCookie('user_id');
+  req.session = null;
   res.redirect("/urls");
 });
 
@@ -74,7 +79,7 @@ app.post("/login", (req, res) => {
   const user = fetchUserId(users, emailInput);
   if (user) {
     if (passwordMatch(users, emailInput, passwordInput)) {
-      res.cookie('user_id', user.id);
+      req.session.user_id = user.id;
       res.redirect('/urls');
     } else {
       res.status(403).send('Incorrect Password');
@@ -85,7 +90,7 @@ app.post("/login", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
   const userObject = users[user];
   const templateVars = { userObject };
   res.render("login", templateVars);
@@ -105,13 +110,13 @@ app.post("/register", (req, res) => {
       email: emailInput,
       password: bcrypt.hashSync(passwordInput, 10)
     };
-    res.cookie('user_id', newUserId);
+    req.session.user_id = newUserId; 
     res.redirect("/urls");
   }
 });
 
 app.post("/urls/:shortURL", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
   const urlToShow = urlsForUser(urlDatabase, user);
   const shortURL = req.params.shortURL
   if (urlToShow[shortURL]) {
@@ -126,13 +131,14 @@ app.post("/urls", (req, res) => {
   let newShortURL = generateRandomString();
   urlDatabase[newShortURL] = {
     longURL: req.body.longURL,
-    userID: req.cookies.user_id
+    userID: req.session['user_id']
   };
   res.redirect(`/urls/${newShortURL}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const user = req.cookies.user_id;
+
+  const user = req.session['user_id'];
   const userObject = users[user];
   const urlAccess = urlsForUser(urlDatabase, user);
   if (userObject && urlAccess) {
@@ -157,14 +163,14 @@ app.get("/u/:shortURL", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
   const userObject = users[user];
   const templateVars = { userObject };
   res.render("registration_page", templateVars);
 });
 
 app.get("/urls/:shortURL", (req, res) => {
-  const user = req.cookies.user_id;
+  const user = req.session['user_id'];
   const userObject = users[user];
   const shortURL = req.params.shortURL;
   if (!urlDatabase[shortURL]) { //URL for given ID does not exist
