@@ -1,7 +1,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const cookieParser = require('cookie-parser');
-const { generateRandomString, fetchUserId, passwordMatch } = require('./helpers/userHelpers');
+const { generateRandomString, fetchUserId, passwordMatch, urlsForUser } = require('./helpers/userHelpers');
 const app = express();
 const PORT = 8080; // default port 8080
 
@@ -11,8 +11,8 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(cookieParser());
 
 const urlDatabase = {
-  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: ""},
-  "9sm5xK": { longURL: "http://www.google.com", userID: ""}
+  "b2xVn2": { longURL: "http://www.lighthouselabs.ca", userID: "userRandomID"},
+  "9sm5xK": { longURL: "http://www.google.com", userID: "user2RandomID"}
 };
 
 const users = {
@@ -39,11 +39,13 @@ app.get("/urls.json", (req, res) => {
 app.get("/urls", (req, res) => {
   const user = req.cookies.user_id;
   const userObject = users[user];
+  const urls = urlsForUser(urlDatabase, user); // filtered list of URLs to display
   const templateVars = {
-    urls: urlDatabase,
+    urls,
     userObject
   };
-  res.render('urls_index', templateVars);
+    res.render('urls_index', templateVars);
+  
 });
 
 app.get("/urls/new", (req, res) => {
@@ -114,12 +116,11 @@ app.post("/urls", (req, res) => {
     longURL: req.body.longURL,
     userID: req.cookies.user_id
   };
-  console.log(urlDatabase);
   res.redirect(`/urls/${newShortURL}`);
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
-  const urlToDelete = req.params.shortURL.longURL;
+  const urlToDelete = req.params.shortURL;
   delete urlDatabase[urlToDelete];
   res.redirect("/urls");
 });
