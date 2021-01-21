@@ -52,7 +52,7 @@ app.get("/urls", (req, res) => {
   if (userObject) {
     res.render('urls_index', templateVars);
   } else {
-    res.status(403).render("403", templateVars);
+    res.status(401).render("403", templateVars);
   }
 });
 
@@ -81,10 +81,10 @@ app.post("/login", (req, res) => {
       req.session.user_id = user.id;
       res.redirect('/urls');
     } else {
-      res.status(403).send('Incorrect Password');
+      res.redirect(401, '/login');
     }
   } else {
-    res.status(403).send("Please register for an account");
+    res.redirect(401, '/register');
   }
 });
 
@@ -103,9 +103,9 @@ app.post("/register", (req, res) => {
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
   if (emailInput === "" || passwordInput === "") {
-    return res.status(400).send('Please enter a valid email/password');
+    res.status(400).send('Please enter a valid email/password');
   } else if (fetchUserId(users, emailInput)) {
-    return res.status(400).send('Email already registered');
+    res.status(400).send('Email already registered');
   } else {
     const newUserId = generateRandomString();
     users[`${newUserId}`] = {
@@ -120,21 +120,24 @@ app.post("/register", (req, res) => {
 
 app.post("/urls/:shortURL", (req, res) => {
   const user = req.session['user_id'];
+  const userObject = users[user]
   const urlToShow = urlsForUser(urlDatabase, user);
   const shortURL = req.params.shortURL
+  const templateVars = { userObject }
   if (!user) {
-    return res.status(403).send("Please log in to perform this action");
-  }
-  if (urlToShow[shortURL]) {
+    res.status(401).render("403", templateVars);
+  } else if (urlToShow[shortURL]) {
     urlDatabase[req.params.shortURL].longURL = req.body.longURL;
     res.redirect("/urls");
   } else {
-    return res.status(403).send("Access denied");
+    res.status(403).send("Access denied");
   }
 });
 
 app.post("/urls", (req, res) => {
   const user = req.session['user_id'];
+  const userObject = users[user];
+  const templateVars = { userObject };
   if (user) {
     let newShortURL = generateRandomString();
     urlDatabase[newShortURL] = {
@@ -143,22 +146,23 @@ app.post("/urls", (req, res) => {
     };
     res.redirect(`/urls/${newShortURL}`);
   } else {
-    res.status(403).send('Please log in to perform this action');
+    res.status(403).render("403", templateVars);
   }
 });
 
 app.post("/urls/:shortURL/delete", (req, res) => {
   const user = req.session['user_id'];
   const userObject = users[user];
+  const templateVars = { userObject };
   const urlAccess = urlsForUser(urlDatabase, user);
   if (userObject && urlAccess) {
     const urlToDelete = req.params.shortURL;
     delete urlDatabase[urlToDelete];
     res.redirect("/urls");
   } else if (userObject) {
-    return res.status(403).send('Access denied');
+    res.status(403).send('Access denied');
   } else {
-    res.status(403).send('Please login to perform this action');
+    res.status(401).render("403", templateVars);
   }
 });
 
@@ -198,7 +202,7 @@ app.get("/urls/:shortURL", (req, res) => {
   };
   const urlToShow = urlsForUser(urlDatabase, user); //returns list of URLs current user can see
   if (!userObject) {
-    return res.status(403).render("403", templateVars);
+    return res.status(401).render("403", templateVars);
   }
   if (urlToShow[shortURL]) { // requested id is part of list users can see
     res.render("urls_show", templateVars);
