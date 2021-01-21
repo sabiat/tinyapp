@@ -45,8 +45,11 @@ app.get("/urls", (req, res) => {
     urls,
     userObject
   };
+  if (userObject) {
     res.render('urls_index', templateVars);
-  
+  } else {
+    res.status(403).render("403", templateVars);
+  }
 });
 
 app.get("/urls/new", (req, res) => {
@@ -174,7 +177,10 @@ app.get("/urls/:shortURL", (req, res) => {
     longURL
   };
   const urlToShow = urlsForUser(urlDatabase, user); //returns list of URLs only current user can access
-  if (urlToShow[shortURL] || !userObject) { // render full page if user request or if not logged in render message to login
+  if (!userObject) {
+    return res.status(403).render("403", templateVars);
+  }
+  if (urlToShow[shortURL]) { // render url if it belongs to user
     res.render("urls_show", templateVars);
   } else {
     res.status(403).send('Access denied');
