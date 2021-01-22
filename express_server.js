@@ -193,7 +193,7 @@ app.get("/urls/:shortURL", (req, res) => {
   const user = req.session['user_id'];
   const userObject = users[user];
   const shortURL = req.params.shortURL;
-  if (!urlDatabase[shortURL]) { //URL for given ID does not exist
+  if (!urlDatabase[shortURL]) { //TinyURL for given ID does not exist
     return res.sendStatus(404);
   }
   const longURL = urlDatabase[shortURL].longURL;
