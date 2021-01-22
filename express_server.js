@@ -22,17 +22,8 @@ const urlDatabase = {
 };
 
 const users = {
-  "userRandomID": {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "random-password"
-  },
-  "user2RandomID": {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "another-random-password"
-  }
-};
+
+}
 
 app.get("/", (req, res) => {
   const user = req.session['user_id'];
