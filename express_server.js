@@ -23,7 +23,7 @@ const urlDatabase = {
 
 const users = {
 
-}
+};
 
 app.get("/", (req, res) => {
   const user = req.session['user_id'];
@@ -69,7 +69,7 @@ app.post("/login", (req, res) => {
   const emailInput = req.body.email;
   const passwordInput = req.body.password;
   const user = fetchUserId(users, emailInput);
-  const templateVars = { userObject: null, error: "Error"} 
+  const templateVars = { userObject: null, error: "Error"};
   if (user) {
     if (passwordMatch(users, emailInput, passwordInput)) {
       req.session.user_id = user.id;
@@ -181,11 +181,14 @@ app.post("/urls/:shortURL/delete", (req, res) => {
 
 app.get("/u/:shortURL", (req, res) => {
   const shortURL = req.params.shortURL;
-  if (urlDatabase[shortURL]) {
+  if (!urlDatabase[shortURL]) {
+    res.sendStatus(404);
+  } else if (urlDatabase[shortURL].longURL.includes('http')) {
     const longURL = urlDatabase[shortURL].longURL;
     res.redirect(longURL);
   } else {
-    res.sendStatus(404);
+    const longURL = `http://${urlDatabase[shortURL].longURL}`;
+    res.redirect(longURL);
   }
 });
 
